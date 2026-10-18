@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #000; color: #00ff41; font-family: 'Courier New', monospace; padding: 15px; }
+        .panel { border: 2px solid #00ff41; background: #050505; box-shadow: 0 0 30px #00ff41; border-radius: 15px; }
+        .sync-box { border: 1px dashed #555; padding: 10px; border-radius: 8px; background: rgba(0,255,65,0.05); }
+        .btn-sync { background: #00ff41; color: #000; font-weight: bold; padding: 5px 10px; border-radius: 4px; font-size: 10px; }
+        .input-main { background: #000; border: 1px solid #00ff41; color: #fff; width: 100%; text-align: center; font-size: 28px; padding: 10px; margin: 10px 0; }
+        .btn-crack { background: #00ff41; color: #000; width: 100%; padding: 15px; font-weight: 900; font-size: 18px; border-radius: 8px; }
+        .res-large { font-size: 5rem; font-weight: 900; line-height: 1; text-shadow: 0 0 20px #fff; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+
+    <div class="panel w-full max-w-sm p-6 space-y-4">
+        <div class="flex justify-between items-center">
+            <h1 class="text-sm font-bold blink">AETHER V23: DYNAMIC SYNC</h1>
+            <span id="syncStatus" class="text-[8px] text-red-500 font-bold">UNSYNCED</span>
+        </div>
+
+        <!-- NEURAL SYNC STEP -->
+        <div class="sync-box space-y-2">
+            <div class="text-[9px] opacity-60">STEP 1: INPUT LAST WINNING NUMBER</div>
+            <div class="flex gap-2">
+                <input type="number" id="lastPeriod" class="bg-black border border-gray-700 text-[10px] p-2 w-2/3" placeholder="Last Period">
+                <input type="number" id="lastNum" class="bg-black border border-gray-700 text-[10px] p-2 w-1/3" placeholder="No.">
+            </div>
+            <button onclick="syncNeural()" class="btn-sync w-full">ESTABLISH NEURAL LINK</button>
+        </div>
+
+        <!-- CRACKING STEP -->
+        <div class="space-y-2 pt-4">
+            <div class="text-[9px] opacity-60">STEP 2: TARGET NEXT PERIOD</div>
+            <input type="number" id="targetPeriod" class="input-main" placeholder="000">
+            <button onclick="crackNext()" class="btn-crack">CRACK RESULT</button>
+        </div>
+
+        <!-- 100% RESULT DISPLAY -->
+        <div id="display" class="hidden text-center border-t border-green-900 pt-6 space-y-2">
+            <div id="outNum" class="res-large text-white italic">--</div>
+            <div class="flex justify-around font-black text-xl italic">
+                <span id="outColor">--</span>
+                <span id="outSize" class="text-white">--</span>
+            </div>
+            <div class="text-[9px] bg-green-500 text-black font-bold px-2 py-1 inline-block">PRE-CALCULATED DATA LOCKED ✅</div>
+        </div>
+    </div>
+
+    <script>
+        async function syncNeural() {
+            const p = document.getElementById('lastPeriod').value;
+            const n = document.getElementById('lastNum').value;
+            if(!p || !n) return alert("Enter last period and number!");
+
+            const res = await fetch(`/sync?period=${p}&number=${n}`);
+            const data = await res.json();
+            
+            if(data.status === "SYNCHRONIZED") {
+                document.getElementById('syncStatus').innerText = "SYNCED";
+                document.getElementById('syncStatus').className = "text-[8px] text-green-500 font-bold";
+                alert("Neural Link Established. AI is now 100% accurate.");
+            }
+        }
+
+        async function crackNext() {
+            const period = document.getElementById('targetPeriod').value;
+            if(!period) return;
+
+            const res = await fetch(`/crack?period=${period}`);
+            const data = await res.json();
+
+            const display = document.getElementById('display');
+            display.classList.remove('hidden');
+
+            document.getElementById('outNum').innerText = data.number;
+            const cEl = document.getElementById('outColor');
+            cEl.innerText = data.color;
+            cEl.style.color = data.color.includes("GREEN") ? "#26a69a" : "#ef5350";
+            document.getElementById('outSize').innerText = data.size;
+        }
+    </script>
+</body>
+</html>
